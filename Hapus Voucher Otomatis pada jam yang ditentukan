@@ -2,7 +2,7 @@ Script ini bertujuan untuk mengeksekusi / menghapus voucher yang telah aktif pad
 Misal voucher diaktifkan pada jam 21:00:00. Maka sistem tetap membaca voucher tersebut aktif pada jam 00:00:00 (start-time=00:00:00)
 Kemudian pada jam 1Dini (interval=25:00:00) hari nanti akan dihapus walaupun voucher aslinya baru jam 21:00:00 
 Script ini biasanya digunakan pada warkop / kafe yang ingin membuat kode voucher manual
-Taruh script ini pada : IP - HOTSPOT - USER PROFILE - ON LOGIN
+Taruh script ini pada : IP -> HOTSPOT -> USER PROFILE -> SCRIPT -> ON LOGIN
 
 ######################################################### ON LOGIN #########################################################
 {
