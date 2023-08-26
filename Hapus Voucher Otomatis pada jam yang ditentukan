@@ -1,0 +1,11 @@
+Script ini bertujuan untuk mengeksekusi / menghapus voucher yang telah aktif pada jam yang ditentukan.
+Misal voucher diaktifkan pada jam 21:00:00. Maka sistem tetap membaca voucher tersebut aktif pada jam 00:00:00 (start-time=00:00:00)
+Kemudian pada jam 1Dini (interval=25:00:00) hari nanti akan dihapus walaupun voucher aslinya baru jam 21:00:00 
+Script ini biasanya digunakan pada warkop / kafe yang ingin membuat kode voucher manual
+Taruh script ini pada : IP - HOTSPOT - USER PROFILE - ON LOGIN
+
+######################################################### ON LOGIN #########################################################
+{
+:local voucher $user;
+:if ([/system scheduler find name=$voucher]="") do={/system scheduler add comment=$voucher name=$voucher start-time=00:00:00 interval=25:00:00 on-event="/ip hotspot active remove [find user=$voucher]\r\n/ip hotspot user remove [find name=$voucher]\r\n/system schedule remove [find name=$voucher]"}
+}
