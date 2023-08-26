@@ -55,3 +55,7 @@ if (aa=1) do={
 }
 /queue simple set [find name="$usernya"] target=$targetnya
 }
+
+################################################ SCHEDULER ################################################
+/system scheduler
+add name=remove-share on-event="/queue simple remove [find comment=\"share\"]" policy=ftp,reboot,read,write,policy,test,password,sniff,sensitive,romon start-time=startup
