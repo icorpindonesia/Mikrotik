@@ -1,0 +1,31 @@
+Script ini berfungsi untuk membuat dan menghapus routes otomatis. Saat wan ada koneksi dan lancar maka routes akan terCREATE. Saat wan tidak ada koneksi maka routes akan diREMOVE
+Script ini sangat cocok untuk bila menggunakan 2ISP untuk routing
+Yang bertujuan agar terjadi failover bila ada salah 1 wan yang down.
+
+
+######################################################### IP -> DHCP-CLIENT -> ADVANCED -> SCRIPT #########################################################
+{
+:local rmark "isp1"
+:local cek "c1"
+    :local count [/ip route print count-only where routing-mark="isp1"]
+    :local count [/ip route print count-only where routing-mark="c1"]
+    :if ($bound=1) do={
+        :if ($count = 0) do={
+            /ip route add comment=ISP-1 gateway=$"gateway-address" routing-mark=$rmark
+            /ip route add comment=ISP-1 gateway=$"gateway-address" routing-mark=$cek
+        } else={
+            :if ($count = 1) do={
+                :local test [/ip route find where routing-mark="isp1"]
+                :local test [/ip route find where routing-mark="c1"]
+                :if ([/ip route get $test gateway] != $"gateway-address") do={
+                    /ip route set $test gateway=$"gateway-address"
+                }
+            } else={
+                :error "Multiple routes found"
+            }
+        }
+    } else={
+        /ip route remove [find routing-mark="isp"]
+        /ip route remove [find routing-mark="c1"]
+    }
+}
