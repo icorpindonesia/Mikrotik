@@ -1,0 +1,14 @@
+/ip dns static
+add address=36.86.63.185 name=internetpositif.uzone.id
+add address=127.0.0.1 name=download.windowsupdate.com ttl=4w2d
+add address=127.0.0.1 name=ntservicepack.microsoft.com ttl=4w2d
+add address=127.0.0.1 name=update.microsoft.com ttl=4w2d
+add address=127.0.0.1 name=windowsupdate.com ttl=4w2d
+add address=127.0.0.1 name=windowsupdate.microsoft.com ttl=4w2d
+add address=127.0.0.1 name=ws.microsoft.com ttl=4w2d
+add address=127.0.0.1 name=stats.microsoft.com ttl=4w2d
+add address=127.0.0.1 name=download.microsoft.com ttl=4w2d
+add address=127.0.0.1 name=wustat.windows.com ttl=4w2d
+add address=127.0.0.1 name=download.gfe.nvidia.com ttl=4w2d
+add address=127.0.0.1 name=gfwsl.geforce.com ttl=4w2d
+add address=127.0.0.1 name=services.gfe.nvidia.com ttl=4w2d
