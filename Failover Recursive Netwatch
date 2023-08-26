@@ -1,0 +1,28 @@
+#############################################################
+# MIKROTIK FAILOVER CHECK GATEWAY, RECUSIVE, NETWATCH GENERATOR
+# Date/Time: 8/27/2023, 1:54:11 AM
+# Created By: BuanaNETPBun.Github.io - fb.me/buananet.pbun
+#############################################################
+
+
+###################### Failover Method -> CHECK GATEWAY #######################################
+/ip route
+add dst-address="0.0.0.0/0" target-scope="10" distance="1" gateway="192.168.1.1" comment="ISP-1" check-gateway="ping" scope="30"
+add dst-address="0.0.0.0/0" target-scope="10" distance="2" gateway="" comment="ISP-2" check-gateway="ping" scope="30"
+
+###################### Failover Method -> RECURSIVE GATEWAY #######################################
+/ip route
+add dst-address="0.0.0.0/0" target-scope="30" distance="1" gateway="4.2.2.1" comment="ISP-1" check-gateway="ping" scope="30"
+add dst-address="0.0.0.0/0" target-scope="30" distance="2" gateway="4.2.2.2" comment="ISP-2" check-gateway="ping" scope="30"
+add dst-address="4.2.2.1" target-scope="10" distance="1" gateway="192.168.1.1" comment="ISP-1-Check" check-gateway="ping" scope="30"
+add dst-address="4.2.2.2" target-scope="10" distance="1" gateway="" comment="ISP-2-Check" check-gateway="ping" scope="30"
+
+###################### Failover Method -> NETWATCH PING #######################################
+/ip route
+add dst-address="0.0.0.0/0" target-scope="10" distance="1" gateway="192.168.1.1" comment="ISP-1" check-gateway="ping" scope="30"
+add dst-address="0.0.0.0/0" target-scope="10" distance="2" gateway="" comment="ISP-2" check-gateway="ping" scope="30"
+add dst-address="4.2.2.1" target-scope="10" distance="1" gateway="192.168.1.1" comment="ISP-1-Check" scope="30"
+add dst-address="4.2.2.2" target-scope="10" distance="1" gateway="" comment="ISP-2-Check" scope="30"
+/tool netwatch
+add host="4.2.2.1" interval="5s" down-script="/ip route disable [find comment=\"ISP-1\"]" up-script="/ip route enable [find comment=\"ISP-1\"]" comment="ISP-1"
+add host="4.2.2.2" interval="5s" down-script="/ip route disable [find comment=\"ISP-2\"]" up-script="/ip route enable [find comment=\"ISP-2\"]" comment="ISP-2"
