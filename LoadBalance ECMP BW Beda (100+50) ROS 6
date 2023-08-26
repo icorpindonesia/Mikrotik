@@ -1,0 +1,27 @@
+###############################################################
+# Load Balancing ECMP (Equal Cost Multi Path) / LB ECMP Script Generator
+# Date/Time: 8/27/2023, 1:22:21 AM
+# Created by: BuanaNETPBun.Github.io - fb.me/buananet.pbun
+# Load Balancing Method: ECMP (EQUAL COST MULTI PATH)
+###############################################################
+
+/ip firewall address-list
+add address=192.168.0.0/16 list=LOCAL-IP
+add address=172.16.0.0/12 list=LOCAL-IP
+add address=10.0.0.0/8 list=LOCAL-IP
+
+/ip route
+add check-gateway=ping distance=1 gateway="192.168.1.1,192.168.1.1,192.168.2.1"
+add check-gateway=ping distance=1 gateway="192.168.1.1" routing-mark="to-ether1"
+add check-gateway=ping distance=1 gateway="192.168.2.1" routing-mark="to-ether2"
+
+/ip firewall mangle
+add action=accept chain=prerouting dst-address-list=LOCAL-IP src-address-list=LOCAL-IP
+add action=accept chain=postrouting dst-address-list=LOCAL-IP src-address-list=LOCAL-IP
+add action=accept chain=forward dst-address-list=LOCAL-IP src-address-list=LOCAL-IP
+add action=accept chain=input dst-address-list=LOCAL-IP src-address-list=LOCAL-IP
+add action=accept chain=output dst-address-list=LOCAL-IP src-address-list=LOCAL-IP
+add action=mark-connection chain=input in-interface="ether1" new-connection-mark="cm-ether1" passthrough=yes
+add action=mark-connection chain=input in-interface="ether2" new-connection-mark="cm-ether2" passthrough=yes
+add action=mark-routing chain=output connection-mark="cm-ether1" new-routing-mark="to-ether1" passthrough=yes
+add action=mark-routing chain=output connection-mark="cm-ether2" new-routing-mark="to-ether2" passthrough=yes
