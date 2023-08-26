@@ -1,0 +1,57 @@
+Script ini bertujuan agar 1 Voucher bisa digunakan banyak device tetapi bandwidth tersebut sudah ditentukan.. 
+Misal Voucher : abc123 bisa digunakan untuk 5device aktif bersamaan dan telah ditentukan max-limit 2M/5M (upload/download).
+Apabila 5device tersebut telah aktif maka bandwidth 2M/5M (upload/download) tersebut digunakan rame-rame.
+yang perlu diperhatikan adalah : tentukan max-limit upload/download. total limit-at upload/download tidak boleh lebih dari max-limit.
+Misal ditentukan u/ 5device maka saat 5device aktif semua maka total limit-at dari 5device tidak boleh lebih dari max-limit 
+apabila di queue menggunakan parent maka sesuaikan nama parent pada script dibawah (parent="xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"). hapus parent bila tidak menggunakan.
+Pasang script ini pada IP -> HOTSPOT -> USER PROFILE -> SCRIPT
+
+################################################ ON LOGIN ################################################
+{
+:local usernya $user;
+:local ipnya $address;
+:local maxlimitnya [/queue simple get [find target="$ipnya/32"] max-limit]
+:local limitatnya [/queue simple get [find target="$ipnya/32"] limit-at]
+/queue simple remove [find target="$ipnya/32"]
+:if ([/queue simple find name="$usernya"]="") do={
+/queue simple add name="$usernya" comment="share" parent="xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx" queue=default/default target=$ipnya max-limit=$maxlimitnya
+/queue simple add name="$usernya - $ipnya" comment="share" parent="$usernya" target=$ipnya max-limit=$maxlimitnya limit-at=$limitatnya
+} else={
+/queue simple add name="$usernya - $ipnya" comment="share" parent="$usernya" target=$ipnya max-limit=$maxlimitnya limit-at=$limitatnya
+}
+}
+
+{
+:local usernya $user;
+:local ipnya $address;
+:local aa 1;
+:local targetnya "";
+:foreach z in=[ /queue simple find parent="$usernya"] do={
+if (aa=1) do={
+:set targetnya [/queue simple get value-name=target $z ];
+} else={
+:set targetnya ($targetnya . "," . [/queue simple get value-name=target $z ]);
+}
+:set aa ($aa+1);
+}
+/queue simple set [find name="$usernya"] target=$targetnya
+}
+
+################################################ ON LOGOUT ################################################
+{
+:local usernya $user;
+:local ipnya $address;
+/queue simple remove [find name="$usernya - $ipnya" comment="share"]
+:if ([/queue simple find parent="$usernya"]="") do={/queue simple remove [find name="$usernya"]}
+:local aa 1;
+:local targetnya "";
+:foreach z in=[ /queue simple find parent="$usernya"] do={
+if (aa=1) do={
+:set targetnya [/queue simple get value-name=target $z ];
+} else={
+:set targetnya ($targetnya . "," . [/queue simple get value-name=target $z ]);
+}
+:set aa ($aa+1);
+}
+/queue simple set [find name="$usernya"] target=$targetnya
+}
