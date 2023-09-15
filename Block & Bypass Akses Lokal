@@ -1,0 +1,13 @@
+Membatasi subnet / ip adress tertentu agar hanya bisa akses internet tanpa tidak bisa akses ke jaringan lokal dan 
+Memberi ijin subnet / ip address untuk bisa akses internet dan jaringan lokal. 
+Hal ini biasanya dibutuhkan dalam sebuah jaringan perusahaan agar data perusahaan tidak bisa diakses sembarangan.
+
+/ip firewall filter
+add address=192.168.1.0/24 list=internet-local
+add address=192.168.2.0/24 list=internet-local
+add address=192.168.3.0/24 list=internet-only
+add address=192.168.4.0/24 list=internet-only
+
+/ip firewall filter
+add action=accept chain=forward comment="accept lan to lan" dst-address-list=internet-local src-address-list=internet-local
+add action=drop chain=forward comment="not allow lan guest" dst-address-list=internet-local src-address-list=internet-only
