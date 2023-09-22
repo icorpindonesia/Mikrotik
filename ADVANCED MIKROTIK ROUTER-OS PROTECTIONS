@@ -1,0 +1,185 @@
+################################################################
+# ADVANCED MIKROTIK ROUTER-OS PROTECTIONS
+# Created By: BuanaNETPBun.Github.io
+################################################################
+
+########################### API (8728) ###########################
+# API Port Enable
+/ip service set api port=8728 address=0.0.0.0/0 disabled=no
+# API Port Disable
+/ip service set api port=8728 address=0.0.0.0/0 disabled=yes
+
+########################### API-SSL (8729) ###########################
+# API-SSL Port Enable
+/ip service set api-ssl port=8729 address=0.0.0.0/0 disabled=no
+# API-SSL Port Disable
+/ip service set api-ssl port=8729 address=0.0.0.0/0 disabled=yes
+
+########################### FTP (21) ###########################
+# FTP Port Enable
+/ip service set ftp port=21 address=0.0.0.0/0 disabled=no
+# FTP Port Disable
+/ip service set ftp port=21 address=0.0.0.0/0 disabled=yes
+
+########################### SSH (22) ###########################
+# SSH Port Enable
+/ip service set ssh port=22 address=0.0.0.0/0 disabled=no
+# SSH Port Disable
+/ip service set ssh port=22 address=0.0.0.0/0 disabled=yes
+
+########################### TELNET (23) ###########################
+# TELNET Port Enable
+/ip service set ftp port=23 address=0.0.0.0/0 disabled=no
+# TELNET Port Disable
+/ip service set ftp port=23 address=0.0.0.0/0 disabled=yes
+
+########################### WINBOX (8291) ###########################
+# WINBOX Port Enable
+/ip service set winbox port=8291 address=0.0.0.0/0 disabled=no
+# WINBOX Port Disable
+/ip service set winbox port=8291 address=0.0.0.0/0 disabled=yes
+
+########################### WWW WEBFIG (80) ###########################
+# WWW (webfig) Port Enable
+/ip service set www port=80 address=0.0.0.0/0 disabled=no
+# WWW (webfig) Port Disable
+/ip service set www port=80 address=0.0.0.0/0 disabled=yes
+
+########################### WWW-SSL WEBFIG (443) ###########################
+# WWW-SSL (webfig) Port Enable
+/ip service set www-ssl port=443 address=0.0.0.0/0 disabled=no
+# WWW-SSL (webfig) Port Disable
+/ip service set www-ssl port=443 address=0.0.0.0/0 disabled=yes
+
+########################### Protect Neighbors Discovery ###########################
+# Hide Discover Interface Broadcast
+/ip neighbor discovery-settings set discover-interface-list=none
+# Show Discover Interface Broadcast
+/ip neighbor discovery-settings set discover-interface-list=all
+
+########################### Protect Mac Server ###########################
+# Protect login from Mac Address
+/tool mac-server mac-winbox set allowed-interface-list=none
+/tool mac-server ping set enabled=no
+# Unprotect login from Mac Address
+/tool mac-server mac-winbox set allowed-interface-list=all
+/tool mac-server ping set enabled=yes
+
+########################### Bootloader Protector ###########################
+# Enable Bootloader Protector
+/system routerboard settings set protected-routerboot=enabled
+# Disable Bootloader Protector
+/system routerboard settings set protected-routerboot=disabled
+
+########################### Protect Btest Server ###########################
+# Btest Server Enable
+/tool bandwidth-server set enabled=yes authenticate=yes
+# Btest Server Disable
+/tool bandwidth-server set enabled=no authenticate=yes
+
+########################### Protect RoMON ###########################
+# Btest Server Enable
+/tool bandwidth-server set enabled=yes authenticate=yes
+# Btest Server Disable
+/tool bandwidth-server set enabled=no authenticate=yes
+
+########################### Protect RoMON ###########################
+# Enable RoMON
+/tool romon set enabled=yes secrets=12345
+# Disable RoMON
+/tool romon set enabled=no secrets=12345
+
+########################### Protect Port Service from Internet ###########################
+# Protect Port Service from Internet
+/interface list add name=WAN
+/interface list member
+add list=WAN interface="ether to ISP"
+/ip firewall filter
+add action=drop chain=input dst-port=21,22,23,8291,80,8728,8729 in-interface-list=WAN protocol=tcp comment="Protect Port Service from Internet"
+add action=drop chain=input dst-port=21,22,23,8291,80,8728,8729 in-interface-list=WAN protocol=udp
+
+########################### Anti Hack from EXPLOIT ###########################
+# Anti Hack from EXPLOIT
+/ip firewall filter add action=reject chain=input content=user.dat reject-with=icmp-network-unreachable comment="Anti Hack Exploit"
+/ip firewall filter add action=drop chain=input content=user.dat
+
+########################### Memcrashed - Amplification Attacks UDP 11211 ###########################
+# Memcrashed - Amplification Attacks UDP 11211
+/ip firewall filter
+add chain=forward dst-port=11211 protocol=udp action=drop comment="Memcrashed - Amplification Attacks UDP 11211"
+
+########################### Block Access Modem ###########################
+# Block ACCESS MODEM
+/ip firewall address-list
+add address=192.168.1.1 list=IP-MODEM
+add address=192.168.2.1 list=IP-MODEM
+/ip firewall filter
+add action=drop chain=forward dst-address-list=IP-MODEM dst-port=21-23,80,443 protocol=tcp comment="MODEM PROTECTED"
+add action=drop chain=output dst-address-list=IP-MODEM dst-port=21-23,80,443 protocol=tcp
+
+########################### Anti NETCUT ###########################
+# ANTI NETCUT
+/ip firewall address-list add list=netcut address=www.arcai.com comment="Anti Netcut"
+/ip firewall mangle add action=add-src-to-address-list address-list=NetcutUser address-list-timeout=1h5m chain=prerouting dst-address-list=netcut dst-port=80 protocol=tcp comment="Anti Netcut"
+/ip firewall filter add action=drop chain=forward src-address-list=NetcutUser comment="Anti Netcut"
+/system scheduler add interval=10m name="AutoBlockNetcut" comment="Anti Netcut"
+
+# ON SCHEDULLER
+local a [/ip firewall address-list get [find list="NetcutUser"] address]
+local b [/ip hotspot active get [find address=$a] mac-address]
+if ($a != "") do={[ /ip hotspot ip-binding add mac-address="$b" address="$a" type=blocked
+/ip firewall address-list remove [find address="$a"]
+/system scheduler add name ($a) interval="01:00:00" on "/ip hotspot ip-binding remove [find mac-address=$b]
+/system scheduler remove [find name=$a]"
+]}
+
+########################### Block Open Recursive DNS ###########################
+# Block Open Recursive DNS
+/interface list add name=WAN
+/interface list member
+add list=WAN interface="ether to ISP"
+/ip firewall filter
+add chain=input dst-port=53 in-interface-list=WAN protocol=tcp action=drop comment="Block Open Recursive DNS"
+add chain=input dst-port=53 in-interface-list=WAN protocol=udp action=drop
+
+########################### Anti DDoS Attacks ###########################
+# Anti DDoS Attacks
+/ip firewall filter
+add chain=forward connection-state=new action=jump jump-target=block-ddos comment="Anti DDoS Attacks"
+add chain=forward connection-state=new src-address-list=ddoser dst-address-list=ddosed action=drop
+add chain=block-ddos dst-limit=50,50,src-and-dst-addresses/10s action=return
+add chain=block-ddos action=add-dst-to-address-list address-list=ddosed address-list-timeout=10m
+add chain=block-ddos action=add-src-to-address-list address-list=ddoser address-list-timeout=10m
+
+########################### Anti PORT SCAN ###########################
+# Anti PORT SCAN
+/ip firewall filter
+add chain=input protocol=tcp psd=21,3s,3,1 action=add-src-to-address-list address-list="port scanners" address-list-timeout=2w comment="Mark Source ip port scanner to Address list " disabled=no
+add chain=input protocol=tcp tcp-flags=fin,!syn,!rst,!psh,!ack,!urg action=add-src-to-address-list address-list="port scanners" address-list-timeout=2w comment="NMAP FIN Stealth scan"
+add chain=input protocol=tcp tcp-flags=fin,syn action=add-src-to-address-list address-list="port scanners" address-list-timeout=2w comment="SYN/FIN scan"
+add chain=input protocol=tcp tcp-flags=syn,rst action=add-src-to-address-list address-list="port scanners" address-list-timeout=2w comment="SYN/RST scan"
+add chain=input protocol=tcp tcp-flags=fin,psh,urg,!syn,!rst,!ack action=add-src-to-address-list address-list="port scanners" address-list-timeout=2w comment="FIN/PSH/URG scan"
+add chain=input protocol=tcp tcp-flags=fin,syn,rst,psh,ack,urg action=add-src-to-address-list address-list="port scanners" address-list-timeout=2w comment="ALL/ALL scan"
+add chain=input protocol=tcp tcp-flags=!fin,!syn,!rst,!psh,!ack,!urg action=add-src-to-address-list address-list="port scanners" address-list-timeout=2w comment="NMAP NULL scan"
+add chain=input src-address-list="port scanners" action=drop comment="Drop port scanners" disabled=no
+
+########################### Anti Hack from BruteForce FTP + SSH ###########################
+# Anti Hack from BruteForce FTP + SSH
+/ip firewall filter
+add action=drop chain=input comment="drop ftp BRUTE FORCErs" dst-port=21 protocol=tcp src-address-list=ftp_blacklist
+add action=accept chain=output content="530 Login incorrect" dst-limit=1/1m,9,dst-address/1m protocol=tcp
+add action=add-dst-to-address-list address-list=ftp_blacklist address-list-timeout=3h chain=output content="530 Login incorrect" protocol=tcp
+add action=drop chain=input comment="drop ssh BRUTE FORCErs" dst-port=22-23 protocol=tcp src-address-list=ssh_blacklist
+add action=add-src-to-address-list address-list=ssh_blacklist address-list-timeout=1w3d chain=input connection-state=new dst-port=22-23 protocol=tcp src-address-list=ssh_stage3
+add action=add-src-to-address-list address-list=ssh_stage3 address-list-timeout=1m chain=input connection-state=new dst-port=22-23 protocol=tcp src-address-list=ssh_stage2
+add action=add-src-to-address-list address-list=ssh_stage2 address-list-timeout=1m chain=input connection-state=new dst-port=22-23 protocol=tcp src-address-list=ssh_stage1
+add action=add-src-to-address-list address-list=ssh_stage1 address-list-timeout=1m chain=input connection-state=new dst-port=22-23 protocol=tcp
+add action=drop chain=forward comment="drop ssh brute downstream" dst-port=22-23 protocol=tcp src-address-list=ssh_blacklist
+
+########################### Port Knocking Use Icmp + Packet Size ###########################
+# Port Knocking Use Icmp + Packet Size
+/ip firewall filter
+add action=add-src-to-address-list address-list="port-knocking-first" address-list-timeout="00:00:00" chain=input packet-size="100" protocol=icmp comment="Port Knocking Use Icmp + Packet Size"
+add action=add-src-to-address-list address-list="port-knocking-second" address-list-timeout="00:00:00" chain=input packet-size="200" protocol=icmp src-address-list="port-knocking-first"
+add action=accept chain=input dst-port="21,22,23" protocol=tcp src-address-list="port-knocking-second"
+add action=drop chain=input dst-port="21,22,23" protocol=tcp src-address-list="!port-knocking-second"
