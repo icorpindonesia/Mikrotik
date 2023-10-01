@@ -1,0 +1,6 @@
+:if ([/ping 1.1.1.1 routing-table=WAN-1 count=5] = 0) do={
+:local datetime1 [/system clock get date]
+:local datetime2 [/system clock get time]
+:log error "RTO pada jam [ $datetime2 ] tanggal [ $datetime1 ]"
+/tool fetch url="https://api.telegram.org/botxxxx:xxxxxxxxxxxxxxxxxxxxxxxxxxxxx/sendMessage\?chat_id=xxxx&text= ->> Jalur WAN-1 RTO pada jam [ $datetime2 ] tanggal [ $datetime1 ] " keep-result=no
+}
