@@ -1,0 +1,18 @@
+Auto Backup Filename.backup dan dikirim ke Gmail
+
+Pertama Setup Emailmu di  Tool > Email
+
+/tool e-mail set address=74.125.200.109 from=xxx@gmail.com password=xxxx port=587 start-tls=yes user=xxxx@gmail.com
+
+bikin Scheduler dan kamu bisa setting waktu kirim ke email contoh seminggu sekali "7d 00:00:00"
+
+#************************************************************
+# BACKUP FILENAME.BACKUP AND SEND TO GMAIL BY BUANANET
+#************************************************************
+:global backupfile ([/system identity get name] . "-" . [/system clock get time])
+/system backup save name=$backupfile
+:delay 30s
+:log info "backup being emailed"
+/tool e-mail send to="xxxx@gmail.com" subject=([/system identity get name] . " - ". [/system clock get time] . " - " . [/system clock get date] . "") from=xxxx@gmail.com file=("$backupfile" . ".backup")
+:delay 30s
+/file remove ("$backupfile" . ".backup")
